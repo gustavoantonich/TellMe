@@ -1,0 +1,15 @@
+FUNDAMENTACIÓN DEL PROYECTO
+
+¿Qué queremos lograr?
+Con este proyecto buscamos desarrollar una red social en formato web, inspirada en plataformas como Twitter/X, aplicando conocimientos de backend, bases de datos, arquitectura de software y protecciones en el código.
+El objetivo principal es comprender cómo se organiza y desarrolla una aplicación moderna utilizando Django 5.2 y Python 3.12, implementando funcionalidades como perfiles, publicaciones, seguidores, mensajes directos, hashtags y búsqueda de contenido.
+Además, queremos aprender a optimizar consultas y estructurar un proyecto, utilizando las herramientas y tecnologías dadas en clase.
+
+
+¿Por qué elegimos este tema?
+Elegimos este tema porque una red social permite trabajar muchos conceptos importantes del desarrollo web en un solo proyecto, como autenticación, relaciones entre modelos, optimización y APIs.
+También nos pareció interesante porque representa un tipo de aplicación muy utilizada actualmente y nos permite acercarnos a problemas reales del desarrollo de software.
+
+
+¿Cuál es el resultado esperado?
+Esperamos obtener un proyecto funcional y bien organizado, donde los usuarios puedan registrarse, crear publicaciones y demás funcionalidades características de las redes sociales actuales.
