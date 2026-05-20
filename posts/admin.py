@@ -8,4 +8,4 @@ class PostAdmin(admin.ModelAdmin):
     search_fields = ('content', 'author__username')
     list_filter = ('created_at',)
 
-# Añadido 4
+# Añadido 4 sas

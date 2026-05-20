@@ -33,4 +33,4 @@ class Post(models.Model):
     def __str__(self):
         return f"{self.author.username}: {self.content[:25]}"
     
-    # Añadido 3 lol
+    # Añadido 3 sus
