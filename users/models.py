@@ -29,4 +29,4 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
     
-    #añadido 2
+    #añadido 2 ñoño
