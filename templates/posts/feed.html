@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Feed</h2>
+
+<form method="POST" action="{% url 'create_post' %}">
+
+    {% csrf_token %}
+
+    <textarea
+        name="content"
+        rows="4"
+        cols="50"
+        placeholder="¿Qué estás pensando?"
+    ></textarea>
+
+    <br>
+
+    <button type="submit">
+        Publicar
+    </button>
+
+</form>
+
+<hr>
+
+{% for post in posts %}
+
+    <div>
+
+        <strong>
+            {{ post.author.username }}
+        </strong>
+
+        <p>
+            {{ post.content }}
+        </p>
+
+        <small>
+            {{ post.created_at }}
+        </small>
+
+    </div>
+
+    <hr>
+
+{% empty %}
+
+    <p>No hay publicaciones todavía.</p>
+
+{% endfor %}
+
+{% endblock %}
+<!-- Añadido 8 c4-->
