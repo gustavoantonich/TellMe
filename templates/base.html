@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>TellMe</title>
+</head>
+
+<body>
+
+    <nav>
+
+        <h1>TellMe</h1>
+
+        {% if user.is_authenticated %}
+            <p>Bienvenido {{ user.username }}</p>
+        {% endif %}
+
+    </nav>
+
+    <hr>
+
+    {% block content %}
+    {% endblock %}
+
+</body>
+
+</html>
+<!-- Añadido 9 c4-->
