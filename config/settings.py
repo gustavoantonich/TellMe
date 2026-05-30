@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'feed',
     'messaging',
     'search',
-
+    'accounts',
 ]
 
 MIDDLEWARE = [

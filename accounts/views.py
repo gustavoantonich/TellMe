@@ -4,20 +4,20 @@ from django.contrib import messages
 
 def login_view(request):
     if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
+        username = request.POST["username"]
+        password = request.POST["password"]
 
         user = authenticate(request, username=username, password=password)
 
         if user:
             login(request, user)
-            return redirect('feed')
+            return redirect("feed")
         else:
-            messages.error(request, "Credenciales incorrectas")
+            messages.error(request, "Usuario o contraseña incorrectos")
 
-    return render(request, 'accounts/login.html')
+    return render(request, "accounts/login.html")
 
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect("login")
