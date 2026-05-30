@@ -1,8 +1,7 @@
 from django.urls import path
-from .views import feed, create_post
+from . import views
 
 urlpatterns = [
-    path('', feed, name='feed'),
-    path('create/', create_post, name='create_post'),
+    path("", views.feed, name="feed"),
 ]
 #añadido 6 c4
