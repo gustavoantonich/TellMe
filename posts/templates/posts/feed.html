@@ -1,18 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Feed TellMe</title>
+    <title>Feed</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f4f4;
+            margin: 0;
+        }
+
+        .navbar {
+            background: #111;
+            color: white;
+            padding: 15px;
+            font-size: 20px;
+        }
+
+        .container {
+            width: 600px;
+            margin: 20px auto;
+        }
+
+        .post {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .username {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .content {
+            margin-top: 10px;
+        }
+
+        .empty {
+            text-align: center;
+            color: gray;
+            margin-top: 50px;
+        }
+    </style>
 </head>
 <body>
 
-<h1>Feed</h1>
+<div class="navbar">
+    📱 TellMe Feed
+</div>
 
-{% for post in posts %}
-    <div style="border:1px solid #ccc; margin:10px; padding:10px;">
-        <strong>{{ post.user.username }}</strong>
-        <p>{{ post.content }}</p>
-    </div>
-{% endfor %}
+<div class="container">
+
+    {% if posts %}
+        {% for post in posts %}
+            <div class="post">
+                <div class="username">
+                    {{ post.user.username }}
+                </div>
+
+                <div class="content">
+                    {{ post.content }}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty">
+            No hay posts todavía 😢
+        </div>
+    {% endif %}
+
+</div>
 
 </body>
 </html>
