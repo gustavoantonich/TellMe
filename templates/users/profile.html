@@ -1,28 +1,42 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="padding: 0; overflow: hidden;">
+    <div style="height: 120px; background: linear-gradient(135deg, var(--primary), #0f7ab3);"></div>
+    <div style="padding: 0 20px 20px; margin-top: -48px;">
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 16px;">
+            {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}" class="avatar avatar-lg" style="border: 4px solid white;">
+            {% else %}
+                <div class="avatar avatar-lg" style="border: 4px solid white; display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--text-secondary); background: var(--bg);">
+                    {{ profile.username|first|upper }}
+                </div>
+            {% endif %}
+            {% if user == profile %}
+                <a href="/users/profile/edit/" class="btn btn-outline btn-sm">Editar perfil</a>
+            {% endif %}
+        </div>
 
-<head>
-    <title>Perfil</title>
-</head>
+        <h2 style="font-size: 20px; font-weight: 800;">{{ profile.username }}</h2>
 
-<body>
+        {% if profile.bio %}
+            <p style="margin-top: 4px; color: var(--text);">{{ profile.bio }}</p>
+        {% endif %}
 
-<h1>{{ profile.username }}</h1>
-
-{% if profile.avatar %}
-    <img src="{{ profile.avatar.url }}" width="120">
-{% endif %}
-
-<p>{{ profile.bio }}</p>
-<p>{{ profile.location }}</p>
-<p>{{ profile.website }}</p>
-
-<a href="/users/profile/edit/">Editar perfil</a>
-
-<br><br>
-
-<a href="/users/logout/">Cerrar sesión</a>
-
-</body>
-
-</html>
+        <div style="display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap;">
+            {% if profile.location %}
+                <span style="font-size: 14px; color: var(--text-secondary);">
+                    {{ profile.location }}
+                </span>
+            {% endif %}
+            {% if profile.website %}
+                <a href="{{ profile.website }}" target="_blank" style="font-size: 14px;" rel="noopener">
+                    {{ profile.website }}
+                </a>
+            {% endif %}
+            <span style="font-size: 14px; color: var(--text-secondary);">
+                Se unió en {{ profile.created_at|date:"F Y" }}
+            </span>
+        </div>
+    </div>
+</div>
+{% endblock %}

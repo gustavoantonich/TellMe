@@ -1,67 +1,24 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>TellMe Login</title>
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 400px; margin: 40px auto;">
+    <div class="card" style="text-align: center; padding: 32px;">
+        <div style="font-size: 32px; font-weight: 800; margin-bottom: 4px;">TellMe</div>
+        <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 15px;">Inicia sesión en tu cuenta</p>
 
-    <style>
-        body {
-            margin: 0;
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: Arial;
-        }
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
 
-        .card {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            width: 320px;
-        }
+        <form method="POST" style="text-align: left;">
+            {% csrf_token %}
+            <input name="username" placeholder="Usuario" required>
+            <input type="password" name="password" placeholder="Contraseña" required>
+            <button class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 15px;">Iniciar sesión</button>
+        </form>
 
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #2563eb;
-            color: white;
-            border: none;
-        }
-
-        .error {
-            color: red;
-            font-size: 12px;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="card">
-
-    <h2>TellMe</h2>
-
-    {% if error %}
-        <p class="error">{{ error }}</p>
-    {% endif %}
-
-    <form method="POST">
-        {% csrf_token %}
-
-        <input name="username" placeholder="Usuario">
-        <input type="password" name="password" placeholder="Contraseña">
-
-        <button>Entrar</button>
-    </form>
-
+        <p style="margin-top: 16px; font-size: 14px; color: var(--text-secondary);">
+            ¿No tienes cuenta? <a href="/users/register/">Regístrate</a>
+        </p>
+    </div>
 </div>
-
-</body>
-</html>
+{% endblock %}

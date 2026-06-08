@@ -1,26 +1,29 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 500px; margin: 0 auto;">
+    <div class="card">
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 20px;">Editar perfil</h2>
 
-<head>
-    <title>Editar perfil</title>
-</head>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
 
-<body>
+            <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Avatar</label>
+            <input type="file" name="avatar" accept="image/*">
 
-<h2>Editar perfil</h2>
+            <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Biografía</label>
+            <textarea name="bio" placeholder="Cuéntanos sobre ti...">{{ user.bio }}</textarea>
 
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
+            <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Ubicación</label>
+            <input name="location" value="{{ user.location }}" placeholder="Ej: Madrid, España">
 
-    <input name="bio" value="{{ user.bio }}" placeholder="Bio">
-    <input name="location" value="{{ user.location }}" placeholder="Ubicación">
-    <input name="website" value="{{ user.website }}" placeholder="Website">
+            <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Sitio web</label>
+            <input name="website" value="{{ user.website }}" placeholder="https://tusitio.com">
 
-    <input type="file" name="avatar">
-
-    <button>Guardar</button>
-</form>
-
-</body>
-
-</html>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <button class="btn btn-primary">Guardar cambios</button>
+                <a href="/users/profile/{{ user.username }}/" class="btn btn-outline">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,27 +1,24 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 400px; margin: 40px auto;">
+    <div class="card" style="text-align: center; padding: 32px;">
+        <div style="font-size: 32px; font-weight: 800; margin-bottom: 4px;">TellMe</div>
+        <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 15px;">Crea tu cuenta gratis</p>
 
-<head>
-    <title>Register</title>
-</head>
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
 
-<body>
+        <form method="POST" style="text-align: left;">
+            {% csrf_token %}
+            <input name="username" placeholder="Nombre de usuario" required>
+            <input type="password" name="password" placeholder="Contraseña" required>
+            <button class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 15px;">Crear cuenta</button>
+        </form>
 
-<h2>Crear cuenta</h2>
-
-{% if error %}
-    <p style="color:red">{{ error }}</p>
-{% endif %}
-
-<form method="POST">
-    {% csrf_token %}
-
-    <input name="username" placeholder="Usuario">
-    <input type="password" name="password" placeholder="Contraseña">
-
-    <button>Registrarse</button>
-</form>
-
-</body>
-
-</html>
+        <p style="margin-top: 16px; font-size: 14px; color: var(--text-secondary);">
+            ¿Ya tienes cuenta? <a href="/users/login/">Inicia sesión</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
