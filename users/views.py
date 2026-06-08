@@ -85,3 +85,8 @@ def edit_profile_view(request):
     return render(request, "users/edit_profile.html", {
         "user": user
     })
+
+
+def logout_view(request):
+    logout(request)
+    return redirect("login")
