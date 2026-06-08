@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Perfil</title>
+</head>
+
+<body>
+
+<h1>{{ profile.username }}</h1>
+
+{% if profile.avatar %}
+    <img src="{{ profile.avatar.url }}" width="120">
+{% endif %}
+
+<p>{{ profile.bio }}</p>
+<p>{{ profile.location }}</p>
+<p>{{ profile.website }}</p>
+
+<a href="/users/profile/edit/">Editar perfil</a>
+
+<br><br>
+
+<a href="/users/logout/">Cerrar sesión</a>
+
+</body>
+
+</html>

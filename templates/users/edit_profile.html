@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Editar perfil</title>
+</head>
+
+<body>
+
+<h2>Editar perfil</h2>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <input name="bio" value="{{ user.bio }}" placeholder="Bio">
+    <input name="location" value="{{ user.location }}" placeholder="Ubicación">
+    <input name="website" value="{{ user.website }}" placeholder="Website">
+
+    <input type="file" name="avatar">
+
+    <button>Guardar</button>
+</form>
+
+</body>
+
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>TellMe</title>
+</head>
+
+<body>
+
+<nav>
+
+    <a href="/users/profile/{{ user.username }}/">Perfil</a>
+
+    {% if user.is_authenticated %}
+
+        <a href="/users/logout/">Logout</a>
+
+    {% else %}
+
+        <a href="/users/login/">Login</a>
+        <a href="/users/register/">Register</a>
+
+    {% endif %}
+
+</nav>
+
+<hr>
+
+{% block content %}
+{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Register</title>
+</head>
+
+<body>
+
+<h2>Crear cuenta</h2>
+
+{% if error %}
+    <p style="color:red">{{ error }}</p>
+{% endif %}
+
+<form method="POST">
+    {% csrf_token %}
+
+    <input name="username" placeholder="Usuario">
+    <input type="password" name="password" placeholder="Contraseña">
+
+    <button>Registrarse</button>
+</form>
+
+</body>
+
+</html>

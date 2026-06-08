@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TellMe Login</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            width: 320px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #2563eb;
+            color: white;
+            border: none;
+        }
+
+        .error {
+            color: red;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <h2>TellMe</h2>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <input name="username" placeholder="Usuario">
+        <input type="password" name="password" placeholder="Contraseña">
+
+        <button>Entrar</button>
+    </form>
+
+</div>
+
+</body>
+</html>
