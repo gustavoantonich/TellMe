@@ -7,6 +7,33 @@
     {% endif %}
 </div>
 
+{% if user.is_authenticated %}
+<div class="card" style="padding: 16px; margin-bottom: 16px;">
+    <form method="POST">
+        {% csrf_token %}
+        <div style="display: flex; gap: 12px;">
+            {% if user.avatar %}
+                <img src="{{ user.avatar.url }}" class="avatar avatar-sm">
+            {% else %}
+                <div class="avatar avatar-sm" style="display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--text-secondary); background: var(--bg);">
+                    {{ user.username|first|upper }}
+                </div>
+            {% endif %}
+            <div style="flex: 1;">
+                {{ form.content }}
+                {% if form.content.errors %}
+                    <div class="error">{{ form.content.errors }}</div>
+                {% endif %}
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                    {{ form.image }}
+                    <button class="btn btn-primary btn-sm" style="border-radius: 9999px;">Publicar</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endif %}
+
 {% if posts %}
     {% for post in posts %}
         <div class="card" style="padding: 16px;">
@@ -25,12 +52,25 @@
                         <a href="/users/profile/{{ post.user.username }}/" style="font-weight: 600; color: var(--text); font-size: 14px;">
                             {{ post.user.username }}
                         </a>
-                        <span style="color: var(--text-secondary); font-size: 13px;">·</span>
+                        <span style="color: var(--text-secondary); font-size: 13px;">.</span>
                         <span style="color: var(--text-secondary); font-size: 13px;">{{ post.created_at|date:"j M" }}</span>
                     </div>
                     <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap;">{{ post.content }}</p>
                     {% if post.image %}
                         <img src="{{ post.image }}" style="margin-top: 8px; border-radius: 12px; max-width: 100%; max-height: 300px; border: 1px solid var(--border);">
+                    {% endif %}
+                    {% if user.is_authenticated %}
+                        <div style="margin-top: 12px; display: flex; align-items: center; gap: 4px;">
+                            <form method="POST" action="/posts/like/{{ post.id }}/" class="like-form" data-post-id="{{ post.id }}" style="display: flex; align-items: center; gap: 4px;">
+                                {% csrf_token %}
+                                <button type="submit" style="background: none; border: none; cursor: pointer; padding: 4px; border-radius: 9999px; display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text-secondary); transition: all 0.2s;">
+                                    <span class="like-icon" style="font-size: 18px; line-height: 1;">
+                                        {% if post.id in liked_post_ids %}❤️{% else %}🤍{% endif %}
+                                    </span>
+                                    <span class="like-count">{{ post.likes_count }}</span>
+                                </button>
+                            </form>
+                        </div>
                     {% endif %}
                 </div>
             </div>
@@ -39,8 +79,31 @@
 {% else %}
     <div class="card empty-state">
         <div class="icon">💬</div>
-        <h3>No hay posts todavía</h3>
-        <p style="color: var(--text-secondary);">Sé el primero en publicar algo.</p>
+        <h3>No hay posts todavia</h3>
+        <p style="color: var(--text-secondary);">Se el primero en publicar algo.</p>
     </div>
 {% endif %}
+
+<script>
+document.querySelectorAll('.like-form').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var postId = this.dataset.postId;
+        var formData = new FormData(this);
+
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var icon = form.querySelector('.like-icon');
+            var count = form.querySelector('.like-count');
+            icon.textContent = data.liked ? '❤️' : '🤍';
+            count.textContent = data.likes_count;
+        });
+    });
+});
+</script>
 {% endblock %}

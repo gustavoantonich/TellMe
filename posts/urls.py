@@ -3,5 +3,5 @@ from . import views
 
 urlpatterns = [
     path("", views.feed, name="feed"),
+    path("like/<int:post_id>/", views.like_post, name="like_post"),
 ]
-#añadido 6 c4

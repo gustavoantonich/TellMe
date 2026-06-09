@@ -1,25 +1,54 @@
 {% extends "base.html" %}
 {% block content %}
-<div style="max-width: 500px; margin: 0 auto;">
+<div style="max-width: 520px; margin: 0 auto;">
     <div class="card">
         <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 20px;">Editar perfil</h2>
 
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
 
+            <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Nombre</label>
+                    <input name="first_name" value="{{ form.first_name.value|default:'' }}" placeholder="Nombre">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Apellido</label>
+                    <input name="last_name" value="{{ form.last_name.value|default:'' }}" placeholder="Apellido">
+                </div>
+            </div>
+
+            <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Correo electronico</label>
+            <input name="email" type="email" value="{{ form.email.value|default:'' }}" placeholder="correo@ejemplo.com">
+
             <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Avatar</label>
-            <input type="file" name="avatar" accept="image/*">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                {% if user.avatar %}
+                    <img src="{{ user.avatar.url }}" class="avatar" style="width: 64px; height: 64px;">
+                {% endif %}
+                <input type="file" name="avatar" accept="image/*" style="flex: 1; margin: 0;">
+            </div>
 
-            <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Biografía</label>
-            <textarea name="bio" placeholder="Cuéntanos sobre ti...">{{ user.bio }}</textarea>
+            <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Biografia</label>
+            <textarea name="bio" placeholder="Cuentanos sobre ti...">{{ form.bio.value|default:'' }}</textarea>
 
-            <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Ubicación</label>
-            <input name="location" value="{{ user.location }}" placeholder="Ej: Madrid, España">
+            <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Ubicacion</label>
+            <input name="location" value="{{ form.location.value|default:'' }}" placeholder="Ej: Madrid, Espana">
 
             <label style="font-size: 13px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Sitio web</label>
-            <input name="website" value="{{ user.website }}" placeholder="https://tusitio.com">
+            <input name="website" value="{{ form.website.value|default:'' }}" placeholder="https://tusitio.com">
 
-            <div style="display: flex; gap: 8px; margin-top: 8px;">
+            {% if form.errors %}
+                <div class="error">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div style="display: flex; gap: 8px; margin-top: 16px;">
                 <button class="btn btn-primary">Guardar cambios</button>
                 <a href="/users/profile/{{ user.username }}/" class="btn btn-outline">Cancelar</a>
             </div>
