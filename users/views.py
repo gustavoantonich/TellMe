@@ -56,12 +56,17 @@ def profile_view(request, username):
     followers_count = profile.followers.count()
     following_count = profile.following.count()
 
+    is_following = False
+    if request.user.is_authenticated and request.user != profile:
+        is_following = profile.followers.filter(follower=request.user).exists()
+
     return render(request, "users/profile.html", {
         "profile": profile,
         "posts": posts,
         "posts_count": posts_count,
         "followers_count": followers_count,
         "following_count": following_count,
+        "is_following": is_following,
     })
 
 

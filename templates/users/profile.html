@@ -13,6 +13,13 @@
             {% endif %}
             {% if user == profile %}
                 <a href="/users/profile/edit/" class="btn btn-outline btn-sm">Editar perfil</a>
+            {% elif user.is_authenticated %}
+                <form method="POST" action="/follows/follow/{{ profile.username }}/" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn {% if is_following %}btn-outline{% else %}btn-primary{% endif %} btn-sm">
+                        {% if is_following %}Dejar de seguir{% else %}Seguir{% endif %}
+                    </button>
+                </form>
             {% endif %}
         </div>
 
