@@ -4,4 +4,5 @@ from . import views
 urlpatterns = [
     path("", views.feed, name="feed"),
     path("like/<int:post_id>/", views.like_post, name="like_post"),
+    path("hashtag/<slug:tag_name>/", views.hashtag_view, name="hashtag"),
 ]

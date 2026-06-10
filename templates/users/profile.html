@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load hashtag_extras %}
 {% block content %}
 <div class="card" style="padding: 0; overflow: hidden;">
     <div style="height: 140px; background: linear-gradient(135deg, var(--primary), #0f7ab3);"></div>
@@ -52,7 +53,7 @@
     <h3 style="font-size: 17px; font-weight: 700; margin-bottom: 12px;">Publicaciones</h3>
     {% for post in posts %}
         <div class="card" style="padding: 16px;">
-            <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap; margin-bottom: 8px;">{{ post.content }}</p>
+            <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap; margin-bottom: 8px;">{{ post.content|link_hashtags }}</p>
             <div style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text-secondary);">
                 <span>{{ post.created_at|date:"j M Y" }}</span>
                 <span>{{ post.likes_count }} Me gusta</span>
