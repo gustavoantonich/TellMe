@@ -71,8 +71,8 @@ def hashtag_view(request, tag_name):
 
             content = post.content.strip()
 
-            if not content.lower().startswith(f"#{hashtag.name}"):
-                post.content = f"#{hashtag.name} {content}"
+            if f"#{hashtag.name.lower()}" not in content.lower():
+                post.content = f"{content} #{hashtag.name}"
 
             post.save()
 
