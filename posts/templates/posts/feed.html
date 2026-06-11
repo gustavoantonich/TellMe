@@ -11,6 +11,16 @@
 </div>
 
 {% if user.is_authenticated %}
+
+{% if hashtag %}
+<div class="card" style="padding: 12px; margin-bottom: 12px; background: rgba(29,155,240,0.08); border: 1px solid rgba(29,155,240,0.25);">
+    <strong>#{{ hashtag.name }}</strong><br>
+    <span style="font-size: 14px; color: var(--text-secondary);">
+        Estás publicando dentro de este hashtag.
+    </span>
+</div>
+{% endif %}
+
 <div class="card" style="padding: 16px; margin-bottom: 16px;">
     <form method="POST">
         {% csrf_token %}
@@ -24,6 +34,11 @@
             {% endif %}
             <div style="flex: 1;">
                 {{ form.content }}
+                {% if hashtag %}
+                    <div style="font-size: 13px; color: var(--primary); margin-top: 6px;">
+                        Se añadirá automáticamente #{{ hashtag.name }}
+                    </div>
+                {% endif %}
                 {% if form.content.errors %}
                     <div class="error">{{ form.content.errors }}</div>
                 {% endif %}
