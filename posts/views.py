@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import Count
-from .models import Post, Like
+from .models import Post, Like, Hashtag
 from .forms import PostForm
 
 
@@ -34,6 +34,60 @@ def feed(request):
         "form": form,
         "liked_post_ids": liked_post_ids,
     })
+
+
+def hashtag_view(request, tag_name):
+    hashtag = get_object_or_404(
+        Hashtag,
+        name=tag_name.lower()
+    )
+
+    posts = hashtag.posts.select_related('user').annotate(
+        likes_count=Count('like')
+    ).order_by('-created_at')
+
+    liked_post_ids = []
+
+    if request.user.is_authenticated:
+        liked_post_ids = list(
+            Like.objects.filter(
+                user=request.user,
+                post_id__in=[p.id for p in posts]
+            ).values_list('post_id', flat=True)
+        )
+
+    if request.method == "POST" and request.user.is_authenticated:
+        form = PostForm(request.POST)
+
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.user = request.user
+
+            content = post.content.strip()
+
+            if f"#{hashtag.name.lower()}" not in content.lower():
+                post.content = f"{content} #{hashtag.name}"
+
+            post.save()
+
+            return redirect(
+                "hashtag",
+                tag_name=hashtag.name
+            )
+
+    else:
+        form = PostForm()
+
+    return render(
+        request,
+        "posts/feed.html",
+        {
+            "posts": posts,
+            "hashtag": hashtag,
+            "liked_post_ids": liked_post_ids,
+            "form": form,
+        }
+    )
 
 
 @login_required
