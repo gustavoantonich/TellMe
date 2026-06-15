@@ -5,14 +5,18 @@
         <div style="font-size: 32px; font-weight: 800; margin-bottom: 4px;">TellMe</div>
         <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 15px;">Inicia sesión en tu cuenta</p>
 
-        {% if error %}
-            <div class="error">{{ error }}</div>
+        {% if form.non_field_errors %}
+            <div class="error">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
         {% endif %}
 
         <form method="POST" style="text-align: left;">
             {% csrf_token %}
-            <input name="username" placeholder="Usuario" required>
-            <input type="password" name="password" placeholder="Contraseña" required>
+            {{ form.username }}
+            {{ form.password }}
             <button class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 15px;">Iniciar sesión</button>
         </form>
 

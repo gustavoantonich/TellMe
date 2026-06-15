@@ -5,14 +5,22 @@
         <div style="font-size: 32px; font-weight: 800; margin-bottom: 4px;">TellMe</div>
         <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 15px;">Crea tu cuenta gratis</p>
 
-        {% if error %}
-            <div class="error">{{ error }}</div>
+        {% if form.errors %}
+            <div class="error">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+            </div>
         {% endif %}
 
         <form method="POST" style="text-align: left;">
             {% csrf_token %}
-            <input name="username" placeholder="Nombre de usuario" required>
-            <input type="password" name="password" placeholder="Contraseña" required>
+            {{ form.username }}
+            {{ form.email }}
+            {{ form.password1 }}
+            {{ form.password2 }}
             <button class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 15px;">Crear cuenta</button>
         </form>
 

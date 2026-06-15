@@ -1,48 +1,36 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
-from .forms import EditProfileForm
+from .forms import RegisterForm, LoginForm, EditProfileForm
 from .models import User
 from posts.models import Post
 
 
 def register_view(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("profile", username=user.username)
+    else:
+        form = RegisterForm()
 
-        if User.objects.filter(username=username).exists():
-            return render(request, "users/register.html", {
-                "error": "El usuario ya existe"
-            })
-
-        user = User.objects.create_user(
-            username=username,
-            password=password
-        )
-        login(request, user)
-        return redirect("profile", username=user.username)
-
-    return render(request, "users/register.html")
+    return render(request, "users/register.html", {"form": form})
 
 
 def login_view(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
+        form = LoginForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
             login(request, user)
             return redirect("profile", username=user.username)
+    else:
+        form = LoginForm()
 
-        return render(request, "users/login.html", {
-            "error": "Credenciales invalidas"
-        })
-
-    return render(request, "users/login.html")
+    return render(request, "users/login.html", {"form": form})
 
 
 def profile_view(request, username):
