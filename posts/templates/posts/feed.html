@@ -22,7 +22,7 @@
 {% endif %}
 
 <div class="card" style="padding: 16px; margin-bottom: 16px;">
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <div style="display: flex; gap: 12px;">
             {% if user.avatar %}
@@ -34,6 +34,9 @@
             {% endif %}
             <div style="flex: 1;">
                 {{ form.content }}
+                <div style="display: flex; justify-content: flex-end; font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                    <span id="char-count">0</span><span>/500</span>
+                </div>
                 {% if hashtag %}
                     <div style="font-size: 13px; color: var(--primary); margin-top: 6px;">
                         Se añadirá automáticamente #{{ hashtag.name }}
@@ -43,7 +46,9 @@
                     <div class="error">{{ form.content.errors }}</div>
                 {% endif %}
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                    {{ form.image }}
+                    <label style="cursor: pointer; color: var(--primary); font-size: 14px;">
+                        {{ form.image }}
+                    </label>
                     <button class="btn btn-primary btn-sm" style="border-radius: 9999px;">Publicar</button>
                 </div>
             </div>
@@ -78,7 +83,7 @@
                         <img src="{{ post.image }}" style="margin-top: 8px; border-radius: 12px; max-width: 100%; max-height: 300px; border: 1px solid var(--border);">
                     {% endif %}
                     {% if user.is_authenticated %}
-                        <div style="margin-top: 12px; display: flex; align-items: center; gap: 4px;">
+                        <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px;">
                             <form method="POST" action="/posts/like/{{ post.id }}/" class="like-form" data-post-id="{{ post.id }}" style="display: flex; align-items: center; gap: 4px;">
                                 {% csrf_token %}
                                 <button type="submit" style="background: none; border: none; cursor: pointer; padding: 4px; border-radius: 9999px; display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text-secondary); transition: all 0.2s;">
@@ -88,6 +93,12 @@
                                     <span class="like-count">{{ post.likes_count }}</span>
                                 </button>
                             </form>
+                            {% if post.user == user %}
+                                <form method="POST" action="/posts/delete/{{ post.id }}/" onsubmit="return confirm('Eliminar este post?')">
+                                    {% csrf_token %}
+                                    <button type="submit" style="background: none; border: none; cursor: pointer; padding: 4px; font-size: 13px; color: #ff4444;">Eliminar</button>
+                                </form>
+                            {% endif %}
                         </div>
                     {% endif %}
                 </div>
@@ -135,5 +146,12 @@ document.querySelectorAll('.like-form').forEach(function(form) {
         });
     });
 });
+
+var contentField = document.querySelector('.post-content');
+if (contentField) {
+    contentField.addEventListener('input', function() {
+        document.getElementById('char-count').textContent = this.value.length;
+    });
+}
 </script>
 {% endblock %}

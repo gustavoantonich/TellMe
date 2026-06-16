@@ -15,8 +15,8 @@ class Hashtag(models.Model):
 class Post(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
 on_delete=models.CASCADE, related_name="posts")
-    content = models.TextField()
-    image = models.URLField(blank=True, null=True)
+    content = models.TextField(max_length=500)
+    image = models.ImageField(upload_to='posts/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     hashtags = models.ManyToManyField(Hashtag, related_name="posts", blank=True)
 

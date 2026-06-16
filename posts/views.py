@@ -20,7 +20,7 @@ def feed(request):
         ).values_list('post_id', flat=True))
 
     if request.method == "POST" and request.user.is_authenticated:
-        form = PostForm(request.POST)
+        form = PostForm(request.POST, request.FILES)
         if form.is_valid():
             post = form.save(commit=False)
             post.user = request.user
@@ -61,9 +61,8 @@ def hashtag_view(request, tag_name):
             ).values_list('post_id', flat=True)
         )
 
-    # NUEVO: permitir publicar desde la página del hashtag
     if request.method == "POST" and request.user.is_authenticated:
-        form = PostForm(request.POST)
+        form = PostForm(request.POST, request.FILES)
 
         if form.is_valid():
             post = form.save(commit=False)
@@ -114,3 +113,11 @@ def like_post(request, post_id):
         'liked': liked,
         'likes_count': post.like_set.count(),
     })
+
+
+@login_required
+@require_POST
+def delete_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id, user=request.user)
+    post.delete()
+    return redirect('feed')

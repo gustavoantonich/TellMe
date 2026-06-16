@@ -10,8 +10,10 @@ class PostForm(forms.ModelForm):
             'content': forms.Textarea(attrs={
                 'placeholder': 'Que esta pasando?',
                 'rows': 3,
+                'maxlength': 500,
+                'class': 'post-content',
             }),
-            'image': forms.URLInput(attrs={
-                'placeholder': 'URL de una imagen (opcional)',
+            'image': forms.FileInput(attrs={
+                'accept': 'image/*',
             }),
         }
