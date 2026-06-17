@@ -27,7 +27,7 @@ class User(AbstractUser):
         auto_now_add=True
     )
 
+    is_email_verified = models.BooleanField(default=False)
+
     def __str__(self):
         return self.username
-    
-    #añadido 2 ñoño

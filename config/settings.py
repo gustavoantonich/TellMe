@@ -152,3 +152,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Modelo personalizado de usuario
 AUTH_USER_MODEL = 'users.User'
+
+# Email configuration (dev: console backend)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@tellme.com'
+
+# Login redirect
+LOGIN_URL = '/users/login/'

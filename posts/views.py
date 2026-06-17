@@ -3,41 +3,71 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import Count
-from .models import Post, Like, Hashtag
+from .models import Post, Like, Hashtag, Retweet
 from .forms import PostForm
+from follows.models import Follow
 
 
 def feed(request):
-    posts = Post.objects.select_related('user').annotate(
-        likes_count=Count('like')
-    ).order_by('-created_at')
+    base_posts = Post.objects.filter(parent=None).select_related("user").annotate(
+        likes_count=Count("like", distinct=True),
+        retweets_count=Count("retweets", distinct=True),
+        replies_count=Count("replies", distinct=True),
+    ).order_by("-created_at")
 
     liked_post_ids = []
+    retweeted_post_ids = set()
+    following_ids = set()
     if request.user.is_authenticated:
-        liked_post_ids = list(Like.objects.filter(
-            user=request.user,
-            post_id__in=[p.id for p in posts]
-        ).values_list('post_id', flat=True))
+        liked_post_ids = list(
+            Like.objects.filter(
+                user=request.user,
+                post_id__in=[p.id for p in base_posts],
+            ).values_list("post_id", flat=True)
+        )
+        retweeted_post_ids = set(
+            Retweet.objects.filter(
+                user=request.user,
+                post_id__in=[p.id for p in base_posts],
+            ).values_list("post_id", flat=True)
+        )
+        following_ids = set(
+            Follow.objects.filter(follower=request.user).values_list("following_id", flat=True)
+        )
+
+    parent_id = request.GET.get("reply_to")
+    initial = {}
+    if parent_id:
+        parent = get_object_or_404(Post, id=parent_id)
+        initial = {"parent": parent}
 
     if request.method == "POST" and request.user.is_authenticated:
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
             post = form.save(commit=False)
             post.user = request.user
+            post.parent_id = request.POST.get("parent_id") or None
             post.save()
-            return redirect('feed')
+            return redirect("feed")
     else:
-        form = PostForm()
+        form = PostForm(initial=initial)
 
     trending = Hashtag.objects.annotate(
-        post_count=Count('posts')
-    ).filter(post_count__gt=0).order_by('-post_count')[:5]
+        post_count=Count("posts")
+    ).filter(post_count__gt=0).order_by("-post_count")[:5]
+
+    reply_to = None
+    if parent_id:
+        reply_to = get_object_or_404(Post.objects.select_related("user"), id=parent_id)
 
     return render(request, "posts/feed.html", {
-        "posts": posts,
+        "posts": base_posts,
         "form": form,
         "liked_post_ids": liked_post_ids,
+        "retweeted_post_ids": retweeted_post_ids,
+        "following_ids": following_ids,
         "trending": trending,
+        "reply_to": reply_to,
     })
 
 
@@ -110,8 +140,86 @@ def like_post(request, post_id):
         liked = True
 
     return JsonResponse({
-        'liked': liked,
-        'likes_count': post.like_set.count(),
+        "liked": liked,
+        "likes_count": post.like_set.count(),
+    })
+
+
+@login_required
+@require_POST
+def retweet_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    retweet, created = Retweet.objects.get_or_create(
+        user=request.user,
+        post=post,
+    )
+    if not created:
+        retweet.delete()
+        retweeted = False
+    else:
+        retweeted = True
+
+    return JsonResponse({
+        "retweeted": retweeted,
+        "retweets_count": post.retweets.count(),
+    })
+
+
+@login_required
+def reply_view(request, post_id):
+    parent = get_object_or_404(
+        Post.objects.select_related("user"), id=post_id
+    )
+    if request.method == "POST":
+        form = PostForm(request.POST, request.FILES)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.user = request.user
+            post.parent = parent
+            post.save()
+            return redirect("feed")
+    else:
+        form = PostForm(initial={"parent": parent})
+
+    return render(request, "posts/reply.html", {
+        "form": form,
+        "parent": parent,
+    })
+
+
+def thread_view(request, post_id):
+    post = get_object_or_404(
+        Post.objects.select_related("user").annotate(
+            likes_count=Count("like", distinct=True),
+            retweets_count=Count("retweets", distinct=True),
+            replies_count=Count("replies", distinct=True),
+        ),
+        id=post_id,
+    )
+    replies = Post.objects.filter(parent=post).select_related("user").annotate(
+        likes_count=Count("like", distinct=True),
+        retweets_count=Count("retweets", distinct=True),
+        replies_count=Count("replies", distinct=True),
+    ).order_by("created_at")
+
+    liked_post_ids = []
+    retweeted_post_ids = set()
+    if request.user.is_authenticated:
+        all_ids = [post.id] + [r.id for r in replies]
+        liked_post_ids = list(
+            Like.objects.filter(user=request.user, post_id__in=all_ids)
+            .values_list("post_id", flat=True)
+        )
+        retweeted_post_ids = set(
+            Retweet.objects.filter(user=request.user, post_id__in=all_ids)
+            .values_list("post_id", flat=True)
+        )
+
+    return render(request, "posts/thread.html", {
+        "post": post,
+        "replies": replies,
+        "liked_post_ids": liked_post_ids,
+        "retweeted_post_ids": retweeted_post_ids,
     })
 
 
@@ -120,4 +228,4 @@ def like_post(request, post_id):
 def delete_post(request, post_id):
     post = get_object_or_404(Post, id=post_id, user=request.user)
     post.delete()
-    return redirect('feed')
+    return redirect("feed")

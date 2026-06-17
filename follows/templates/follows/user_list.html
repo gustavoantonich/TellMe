@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 style="font-size: 20px; font-weight: 800; margin-bottom: 16px;">{{ title }}</h2>
+
+{% if users %}
+    {% for u in users %}
+        <div class="card" style="padding: 16px; display: flex; align-items: center; gap: 12px;">
+            <a href="/users/profile/{{ u.username }}/" style="flex-shrink: 0;">
+                {% if u.avatar %}
+                    <img src="{{ u.avatar.url }}" class="avatar avatar-sm">
+                {% else %}
+                    <div class="avatar avatar-sm" style="display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--text-secondary); background: var(--bg);">
+                        {{ u.username|first|upper }}
+                    </div>
+                {% endif %}
+            </a>
+            <div style="flex: 1; min-width: 0;">
+                <a href="/users/profile/{{ u.username }}/" style="font-weight: 600; color: var(--text);">{{ u.username }}</a>
+                {% if u.bio %}
+                    <p style="font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ u.bio }}</p>
+                {% endif %}
+            </div>
+            {% if user.is_authenticated and user != u %}
+                <form method="POST" action="/follows/follow/{{ u.username }}/">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <button type="submit" class="btn {% if u.id in is_following_map %}btn-outline{% else %}btn-primary{% endif %} btn-sm">
+                        {% if u.id in is_following_map %}Dejar de seguir{% else %}Seguir{% endif %}
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="card empty-state">
+        <div class="icon">👥</div>
+        <h3>No hay usuarios</h3>
+        <p style="color: var(--text-secondary);">No hay nada que mostrar aqui.</p>
+    </div>
+{% endif %}
+
+<a href="/users/profile/{{ profile.username }}/" class="btn btn-outline btn-sm" style="margin-top: 8px;">Volver al perfil</a>
+{% endblock %}

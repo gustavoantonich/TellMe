@@ -21,9 +21,21 @@
 </div>
 {% endif %}
 
+{% if reply_to %}
+<div class="card" style="padding: 12px; margin-bottom: 12px; background: rgba(29,155,240,0.08); border: 1px solid rgba(29,155,240,0.25);">
+    <strong>Respondiendo a @{{ reply_to.user.username }}</strong><br>
+    <span style="font-size: 14px; color: var(--text-secondary);">
+        {{ reply_to.content|truncatechars:100 }}
+    </span>
+</div>
+{% endif %}
+
 <div class="card" style="padding: 16px; margin-bottom: 16px;">
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
+        {% if reply_to %}
+            <input type="hidden" name="parent_id" value="{{ reply_to.id }}">
+        {% endif %}
         <div style="display: flex; gap: 12px;">
             {% if user.avatar %}
                 <img src="{{ user.avatar.url }}" class="avatar avatar-sm">
@@ -49,7 +61,7 @@
                     <label style="cursor: pointer; color: var(--primary); font-size: 14px;">
                         {{ form.image }}
                     </label>
-                    <button class="btn btn-primary btn-sm" style="border-radius: 9999px;">Publicar</button>
+                    <button class="btn btn-primary btn-sm" style="border-radius: 9999px;">{% if reply_to %}Responder{% else %}Publicar{% endif %}</button>
                 </div>
             </div>
         </div>
@@ -77,24 +89,51 @@
                         </a>
                         <span style="color: var(--text-secondary); font-size: 13px;">.</span>
                         <span style="color: var(--text-secondary); font-size: 13px;">{{ post.created_at|date:"j M" }}</span>
+                        {% if user.is_authenticated and user != post.user %}
+                            {% if post.user.id not in following_ids %}
+                                <form method="POST" action="/follows/follow/{{ post.user.username }}/" style="margin-left: auto;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{% url 'feed' %}">
+                                    <button type="submit" class="btn btn-primary btn-sm" style="font-size: 11px; padding: 2px 10px;">Seguir</button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
                     </div>
-                    <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap;">{{ post.content|link_hashtags }}</p>
+                    <a href="/posts/thread/{{ post.id }}/" style="color: inherit; text-decoration: none;">
+                        <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap;">{{ post.content|link_hashtags }}</p>
+                    </a>
                     {% if post.image %}
                         <img src="{{ post.image }}" style="margin-top: 8px; border-radius: 12px; max-width: 100%; max-height: 300px; border: 1px solid var(--border);">
                     {% endif %}
                     {% if user.is_authenticated %}
-                        <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px;">
-                            <form method="POST" action="/posts/like/{{ post.id }}/" class="like-form" data-post-id="{{ post.id }}" style="display: flex; align-items: center; gap: 4px;">
+                        <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
+                            <form method="POST" action="/posts/like/{{ post.id }}/" class="like-form" data-post-id="{{ post.id }}" style="display: flex; align-items: center; gap: 2px;">
                                 {% csrf_token %}
-                                <button type="submit" style="background: none; border: none; cursor: pointer; padding: 4px; border-radius: 9999px; display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text-secondary); transition: all 0.2s;">
+                                <button type="submit" style="background: none; border: none; cursor: pointer; padding: 4px; border-radius: 9999px; display: flex; align-items: center; gap: 2px; font-size: 13px; color: var(--text-secondary); transition: all 0.2s;">
                                     <span class="like-icon" style="font-size: 18px; line-height: 1;">
                                         {% if post.id in liked_post_ids %}❤️{% else %}🤍{% endif %}
                                     </span>
                                     <span class="like-count">{{ post.likes_count }}</span>
                                 </button>
                             </form>
+
+                            <a href="/posts/reply/{{ post.id }}/" style="background: none; border: none; cursor: pointer; padding: 4px; border-radius: 9999px; display: flex; align-items: center; gap: 2px; font-size: 13px; color: var(--text-secondary); text-decoration: none;">
+                                <span style="font-size: 18px; line-height: 1;">💬</span>
+                                <span>{{ post.replies_count }}</span>
+                            </a>
+
+                            <form method="POST" action="/posts/retweet/{{ post.id }}/" class="retweet-form" data-post-id="{{ post.id }}" style="display: flex; align-items: center; gap: 2px;">
+                                {% csrf_token %}
+                                <button type="submit" style="background: none; border: none; cursor: pointer; padding: 4px; border-radius: 9999px; display: flex; align-items: center; gap: 2px; font-size: 13px; color: var(--text-secondary); transition: all 0.2s;">
+                                    <span class="retweet-icon" style="font-size: 18px; line-height: 1;">
+                                        {% if post.id in retweeted_post_ids %}🔁{% else %}↻{% endif %}
+                                    </span>
+                                    <span class="retweet-count">{{ post.retweets_count }}</span>
+                                </button>
+                            </form>
+
                             {% if post.user == user %}
-                                <form method="POST" action="/posts/delete/{{ post.id }}/" onsubmit="return confirm('Eliminar este post?')">
+                                <form method="POST" action="/posts/delete/{{ post.id }}/" onsubmit="return confirm('Eliminar este post?')" style="display: flex; align-items: center;">
                                     {% csrf_token %}
                                     <button type="submit" style="background: none; border: none; cursor: pointer; padding: 4px; font-size: 13px; color: #ff4444;">Eliminar</button>
                                 </form>
@@ -143,6 +182,27 @@ document.querySelectorAll('.like-form').forEach(function(form) {
             var count = form.querySelector('.like-count');
             icon.textContent = data.liked ? '❤️' : '🤍';
             count.textContent = data.likes_count;
+        });
+    });
+});
+
+document.querySelectorAll('.retweet-form').forEach(function(form) {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var postId = this.dataset.postId;
+        var formData = new FormData(this);
+
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var icon = form.querySelector('.retweet-icon');
+            var count = form.querySelector('.retweet-count');
+            icon.textContent = data.retweeted ? '🔁' : '↻';
+            count.textContent = data.retweets_count;
         });
     });
 });
