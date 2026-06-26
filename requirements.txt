@@ -10,3 +10,5 @@ sqlparse==0.5.5
 tzdata==2026.2
 cloudinary==1.44.2
 django-cloudinary-storage==0.3.0
+django-redis==7.0.0
+redis==8.0.1

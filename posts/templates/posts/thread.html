@@ -24,7 +24,7 @@
             </div>
             <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap;">{{ post.content|link_hashtags|link_mentions }}</p>
             {% if post.image %}
-                <img src="{{ post.image }}" style="margin-top: 8px; border-radius: 12px; max-width: 100%; max-height: 300px; border: 1px solid var(--border);">
+                <img src="{{ post.image.url }}" style="margin-top: 8px; border-radius: 12px; max-width: 100%; max-height: 300px; border: 1px solid var(--border);">
             {% endif %}
             <div style="margin-top: 12px; display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--text-secondary); padding-top: 12px; border-top: 1px solid var(--border);">
                 <span>{{ post.replies_count }} respuestas</span>

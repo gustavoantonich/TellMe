@@ -65,6 +65,9 @@
                 {% if form.content.errors %}
                     <div class="error">{{ form.content.errors }}</div>
                 {% endif %}
+                {% if form.image.errors %}
+                    <div class="error">{{ form.image.errors }}</div>
+                {% endif %}
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
                     <label style="cursor: pointer; color: var(--primary); font-size: 14px;">
                         {{ form.image }}
@@ -111,7 +114,7 @@
                         <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap;">{{ post.content|link_hashtags|link_mentions }}</p>
                     </a>
                     {% if post.image %}
-                        <img src="{{ post.image }}" style="margin-top: 8px; border-radius: 12px; max-width: 100%; max-height: 300px; border: 1px solid var(--border);">
+                        <img src="{{ post.image.url }}" style="margin-top: 8px; border-radius: 12px; max-width: 100%; max-height: 300px; border: 1px solid var(--border);">
                     {% endif %}
                     {% if user.is_authenticated %}
                         <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">

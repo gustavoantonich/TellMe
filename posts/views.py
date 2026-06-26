@@ -5,43 +5,61 @@ from django.http import JsonResponse
 from django.db.models import Count
 from .models import Post, Like, Hashtag, Retweet
 from .forms import PostForm
+from .feed_algo import score_and_sort_posts, get_cached_feed, set_cached_feed, invalidate_feed_cache, invalidate_feed_for_user
 from follows.models import Follow
 
 
 def feed(request):
     tab = request.GET.get("tab", "global")
 
-    base_qs = Post.objects.filter(parent=None).select_related("user").prefetch_related("hashtags")
-
     following_ids = set()
     if request.user.is_authenticated:
         following_ids = set(
             Follow.objects.filter(follower=request.user).values_list("following_id", flat=True)
         )
-        if tab == "following":
+
+    cached = get_cached_feed(tab, request.user.pk if request.user.is_authenticated else None)
+    if cached is not None:
+        post_ids, liked_post_ids, retweeted_post_ids = cached
+        base_posts = Post.objects.filter(id__in=post_ids).select_related("user").prefetch_related("hashtags").annotate(
+            likes_count=Count("like", distinct=True),
+            retweets_count=Count("retweets", distinct=True),
+            replies_count=Count("replies", distinct=True),
+        )
+        post_order = {pid: i for i, pid in enumerate(post_ids)}
+        base_posts = sorted(base_posts, key=lambda p: post_order.get(p.id, 0))
+    else:
+        base_qs = Post.objects.filter(parent=None).select_related("user").prefetch_related("hashtags")
+
+        if request.user.is_authenticated and tab == "following":
             base_qs = base_qs.filter(user_id__in=following_ids)
 
-    base_posts = base_qs.annotate(
-        likes_count=Count("like", distinct=True),
-        retweets_count=Count("retweets", distinct=True),
-        replies_count=Count("replies", distinct=True),
-    ).order_by("-created_at")
+        base_posts = list(base_qs.annotate(
+            likes_count=Count("like", distinct=True),
+            retweets_count=Count("retweets", distinct=True),
+            replies_count=Count("replies", distinct=True),
+        ))
 
-    liked_post_ids = []
-    retweeted_post_ids = set()
-    if request.user.is_authenticated:
-        liked_post_ids = list(
-            Like.objects.filter(
-                user=request.user,
-                post_id__in=[p.id for p in base_posts],
-            ).values_list("post_id", flat=True)
-        )
-        retweeted_post_ids = set(
-            Retweet.objects.filter(
-                user=request.user,
-                post_id__in=[p.id for p in base_posts],
-            ).values_list("post_id", flat=True)
-        )
+        liked_post_ids = []
+        retweeted_post_ids = set()
+        if request.user.is_authenticated:
+            liked_post_ids = list(
+                Like.objects.filter(
+                    user=request.user,
+                    post_id__in=[p.id for p in base_posts],
+                ).values_list("post_id", flat=True)
+            )
+            retweeted_post_ids = set(
+                Retweet.objects.filter(
+                    user=request.user,
+                    post_id__in=[p.id for p in base_posts],
+                ).values_list("post_id", flat=True)
+            )
+
+        base_posts = score_and_sort_posts(base_posts, request.user, following_ids)
+        post_ids = [p.id for p in base_posts]
+        set_cached_feed(tab, request.user.pk if request.user.is_authenticated else None,
+                        (post_ids, liked_post_ids, retweeted_post_ids))
 
     parent_id = request.GET.get("reply_to")
     initial = {}
@@ -56,6 +74,9 @@ def feed(request):
             post.user = request.user
             post.parent_id = request.POST.get("parent_id") or None
             post.save()
+            invalidate_feed_cache()
+            if request.user.is_authenticated:
+                invalidate_feed_for_user(request.user.pk)
             return redirect("feed")
     else:
         form = PostForm(initial=initial)
@@ -71,8 +92,8 @@ def feed(request):
     return render(request, "posts/feed.html", {
         "posts": base_posts,
         "form": form,
-        "liked_post_ids": liked_post_ids,
-        "retweeted_post_ids": retweeted_post_ids,
+        "liked_post_ids": liked_post_ids if cached is None else cached[1],
+        "retweeted_post_ids": retweeted_post_ids if cached is None else cached[2],
         "following_ids": following_ids,
         "trending": trending,
         "reply_to": reply_to,
@@ -148,6 +169,8 @@ def like_post(request, post_id):
     else:
         liked = True
 
+    invalidate_feed_cache()
+
     return JsonResponse({
         "liked": liked,
         "likes_count": post.like_set.count(),
@@ -167,6 +190,8 @@ def retweet_post(request, post_id):
         retweeted = False
     else:
         retweeted = True
+
+    invalidate_feed_cache()
 
     return JsonResponse({
         "retweeted": retweeted,
