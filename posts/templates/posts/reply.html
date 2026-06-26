@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load hashtag_extras %}
+{% load static %}
 {% block content %}
 <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 16px;">Responder</h2>
 
@@ -20,7 +21,7 @@
                 <span style="color: var(--text-secondary); font-size: 13px;">.</span>
                 <span style="color: var(--text-secondary); font-size: 13px;">{{ parent.created_at|date:"j M" }}</span>
             </div>
-            <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap;">{{ parent.content|link_hashtags }}</p>
+            <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap;">{{ parent.content|link_hashtags|link_mentions }}</p>
         </div>
     </div>
 </div>

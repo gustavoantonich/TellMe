@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load hashtag_extras %}
+{% load static %}
 {% block content %}
 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
     <h1 style="font-size: 20px; font-weight: 800;">
@@ -9,6 +10,13 @@
         <a href="/users/profile/{{ user.username }}/" style="font-size: 14px; color: var(--text-secondary);">{{ user.username }}</a>
     {% endif %}
 </div>
+
+{% if not hashtag and user.is_authenticated %}
+<div style="display: flex; gap: 0; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 9999px; overflow: hidden;">
+    <a href="/posts/?tab=global" style="flex: 1; text-align: center; padding: 8px 16px; font-size: 14px; font-weight: 600; {% if tab == 'global' %}background: var(--primary); color: white;{% else %}color: var(--text-secondary);{% endif %} text-decoration: none;">Global</a>
+    <a href="/posts/?tab=following" style="flex: 1; text-align: center; padding: 8px 16px; font-size: 14px; font-weight: 600; {% if tab == 'following' %}background: var(--primary); color: white;{% else %}color: var(--text-secondary);{% endif %} text-decoration: none;">Siguiendo</a>
+</div>
+{% endif %}
 
 {% if user.is_authenticated %}
 
@@ -57,6 +65,9 @@
                 {% if form.content.errors %}
                     <div class="error">{{ form.content.errors }}</div>
                 {% endif %}
+                {% if form.image.errors %}
+                    <div class="error">{{ form.image.errors }}</div>
+                {% endif %}
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
                     <label style="cursor: pointer; color: var(--primary); font-size: 14px;">
                         {{ form.image }}
@@ -100,10 +111,10 @@
                         {% endif %}
                     </div>
                     <a href="/posts/thread/{{ post.id }}/" style="color: inherit; text-decoration: none;">
-                        <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap;">{{ post.content|link_hashtags }}</p>
+                        <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap;">{{ post.content|link_hashtags|link_mentions }}</p>
                     </a>
                     {% if post.image %}
-                        <img src="{{ post.image }}" style="margin-top: 8px; border-radius: 12px; max-width: 100%; max-height: 300px; border: 1px solid var(--border);">
+                        <img src="{{ post.image.url }}" style="margin-top: 8px; border-radius: 12px; max-width: 100%; max-height: 300px; border: 1px solid var(--border);">
                     {% endif %}
                     {% if user.is_authenticated %}
                         <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
@@ -211,6 +222,57 @@ var contentField = document.querySelector('.post-content');
 if (contentField) {
     contentField.addEventListener('input', function() {
         document.getElementById('char-count').textContent = this.value.length;
+    });
+}
+
+var mentionDropdown = null;
+if (contentField) {
+    contentField.addEventListener('input', function() {
+        var text = this.value;
+        var cursorPos = this.selectionStart;
+        var beforeCursor = text.substring(0, cursorPos);
+        var match = beforeCursor.match(/@(\w*)$/);
+        if (match) {
+            var query = match[1];
+            if (query.length > 0) {
+                fetch('/users/search/?q=' + encodeURIComponent(query))
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (mentionDropdown) mentionDropdown.remove();
+                        if (data.users && data.users.length > 0) {
+                            mentionDropdown = document.createElement('div');
+                            mentionDropdown.style.cssText = 'position: absolute; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; max-height: 200px; overflow-y: auto; width: 200px;';
+                            var rect = contentField.getBoundingClientRect();
+                            mentionDropdown.style.top = (rect.bottom + 4) + 'px';
+                            mentionDropdown.style.left = rect.left + 'px';
+                            data.users.forEach(function(u) {
+                                var item = document.createElement('div');
+                                item.style.cssText = 'padding: 8px 12px; cursor: pointer; font-size: 14px; border-bottom: 1px solid var(--border);';
+                                item.textContent = '@' + u.username;
+                                item.addEventListener('click', function() {
+                                    var before = text.substring(0, cursorPos).replace(/@\w*$/, '@' + u.username + ' ');
+                                    var after = text.substring(cursorPos);
+                                    contentField.value = before + after;
+                                    contentField.focus();
+                                    contentField.selectionStart = contentField.selectionEnd = before.length;
+                                    if (mentionDropdown) { mentionDropdown.remove(); mentionDropdown = null; }
+                                });
+                                mentionDropdown.appendChild(item);
+                            });
+                            document.body.appendChild(mentionDropdown);
+                        }
+                    });
+            } else {
+                if (mentionDropdown) { mentionDropdown.remove(); mentionDropdown = null; }
+            }
+        } else {
+            if (mentionDropdown) { mentionDropdown.remove(); mentionDropdown = null; }
+        }
+    });
+    contentField.addEventListener('blur', function() {
+        setTimeout(function() {
+            if (mentionDropdown) { mentionDropdown.remove(); mentionDropdown = null; }
+        }, 200);
     });
 }
 </script>

@@ -26,6 +26,9 @@ urlpatterns = [
          ),
          name='password_change_done'),
 
+    # User search autocomplete (for @mentions)
+    path('search/', views.user_search_autocomplete, name='user_search'),
+
     # Password reset (built-in views)
     path('password-reset/',
          auth_views.PasswordResetView.as_view(

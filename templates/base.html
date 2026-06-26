@@ -69,6 +69,8 @@
             color: white;
         }
         .topbar nav a.active:hover { background: var(--primary-hover); }
+        .search-form { display: flex; align-items: center; gap: 4px; }
+        .search-form input { margin: 0; padding: 6px 12px; font-size: 14px; border-radius: 9999px; width: 180px; }
 
         .container {
             max-width: 600px;
@@ -167,10 +169,14 @@
 </head>
 <body>
     <div class="topbar">
-        <div class="brand">TellMe</div>
+        <a href="/posts/" class="brand" style="color: var(--text); text-decoration: none;">TellMe</a>
         <nav>
+            <form class="search-form" action="/search/" method="GET">
+                <input type="text" name="q" placeholder="Buscar..." value="{{ query|default:'' }}">
+            </form>
             {% if user.is_authenticated %}
                 <a href="/posts/">Feed</a>
+                <a href="/messages/">Mensajes</a>
                 <a href="/users/profile/{{ user.username }}/">Perfil</a>
                 <a href="/users/logout/" class="btn btn-outline btn-sm">Salir</a>
             {% else %}
