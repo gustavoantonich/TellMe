@@ -1,16 +1,17 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.core.mail import send_mail
 from django.conf import settings
+from django.http import JsonResponse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib import messages
 from .forms import RegisterForm, LoginForm, EditProfileForm
 from .models import User
-from posts.models import Post
+from posts.models import Post, Retweet
 
 
 def register_view(request):
@@ -21,7 +22,7 @@ def register_view(request):
             user.is_active = True
             user.save()
             _send_verification_email(request, user)
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             messages.success(
                 request,
                 "Te enviamos un correo de verificación. Revisa tu bandeja de entrada."
@@ -85,7 +86,7 @@ def login_view(request):
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return redirect("profile", username=user.username)
     else:
         form = LoginForm()
@@ -103,16 +104,33 @@ def profile_view(request, username):
         username=username,
     )
 
-    posts = (
+    own_posts = list(
         Post.objects.filter(user=profile, parent=None)
         .select_related("user")
+        .prefetch_related("hashtags")
         .annotate(
             likes_count=Count("like", distinct=True),
             retweets_count=Count("retweets", distinct=True),
             replies_count=Count("replies", distinct=True),
         )
-        .order_by("-created_at")
     )
+    for p in own_posts:
+        p.is_retweet = False
+
+    retweeted_posts = list(
+        Post.objects.filter(retweets__user=profile, parent=None)
+        .select_related("user")
+        .prefetch_related("hashtags")
+        .annotate(
+            likes_count=Count("like", distinct=True),
+            retweets_count=Count("retweets", distinct=True),
+            replies_count=Count("replies", distinct=True),
+        )
+    )
+    for p in retweeted_posts:
+        p.is_retweet = True
+
+    all_posts = sorted(own_posts + retweeted_posts, key=lambda p: p.created_at, reverse=True)
 
     is_following = False
     if request.user.is_authenticated and request.user != profile:
@@ -122,7 +140,7 @@ def profile_view(request, username):
 
     return render(request, "users/profile.html", {
         "profile": profile,
-        "posts": posts,
+        "posts": all_posts,
         "posts_count": profile.posts_count,
         "followers_count": profile.followers_count,
         "following_count": profile.following_count,
@@ -150,3 +168,11 @@ def edit_profile_view(request):
 def logout_view(request):
     logout(request)
     return redirect("login")
+
+
+def user_search_autocomplete(request):
+    q = request.GET.get("q", "")
+    if len(q) < 1:
+        return JsonResponse({"users": []})
+    users = User.objects.filter(username__istartswith=q).values("username")[:10]
+    return JsonResponse({"users": list(users)})

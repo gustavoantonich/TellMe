@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load hashtag_extras %}
+{% block content %}
+<h1 style="font-size: 20px; font-weight: 800; margin-bottom: 16px;">
+    Buscar: "{{ query }}"
+</h1>
+
+{% if not query %}
+    <div class="card empty-state">
+        <div class="icon">🔍</div>
+        <h3>Busca en TellMe</h3>
+        <p style="color: var(--text-secondary);">Encuentra posts, usuarios y hashtags.</p>
+    </div>
+{% else %}
+
+    {% if users %}
+    <div class="card" style="padding: 16px; margin-bottom: 16px;">
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Usuarios</h3>
+        {% for u in users %}
+            <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border);">
+                <a href="/users/profile/{{ u.username }}/" style="flex-shrink: 0;">
+                    {% if u.avatar %}
+                        <img src="{{ u.avatar.url }}" class="avatar avatar-sm">
+                    {% else %}
+                        <div class="avatar avatar-sm" style="display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--text-secondary); background: var(--bg);">
+                            {{ u.username|first|upper }}
+                        </div>
+                    {% endif %}
+                </a>
+                <div style="flex: 1;">
+                    <a href="/users/profile/{{ u.username }}/" style="font-weight: 600; color: var(--text);">@{{ u.username }}</a>
+                    {% if u.bio %}
+                        <p style="font-size: 13px; color: var(--text-secondary);">{{ u.bio|truncatechars:60 }}</p>
+                    {% endif %}
+                </div>
+                <span style="font-size: 12px; color: var(--text-secondary);">{{ u.posts_count }} posts</span>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if hashtags %}
+    <div class="card" style="padding: 16px; margin-bottom: 16px;">
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Hashtags</h3>
+        {% for tag in hashtags %}
+            <div style="margin-bottom: 8px;">
+                <a href="/posts/hashtag/{{ tag.name }}/" style="font-weight: 600; color: var(--primary);">#{{ tag.name }}</a>
+                <span style="font-size: 13px; color: var(--text-secondary); margin-left: 8px;">{{ tag.post_count }} posts</span>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if posts %}
+    <div class="card" style="padding: 16px; margin-bottom: 16px;">
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">Posts</h3>
+    </div>
+    {% for post in posts %}
+        <div class="card" style="padding: 16px;">
+            <div style="display: flex; gap: 12px;">
+                <a href="/users/profile/{{ post.user.username }}/" style="flex-shrink: 0;">
+                    {% if post.user.avatar %}
+                        <img src="{{ post.user.avatar.url }}" class="avatar avatar-sm">
+                    {% else %}
+                        <div class="avatar avatar-sm" style="display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--text-secondary); background: var(--bg);">
+                            {{ post.user.username|first|upper }}
+                        </div>
+                    {% endif %}
+                </a>
+                <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
+                        <a href="/users/profile/{{ post.user.username }}/" style="font-weight: 600; color: var(--text); font-size: 14px;">
+                            {{ post.user.username }}
+                        </a>
+                        <span style="color: var(--text-secondary); font-size: 13px;">.</span>
+                        <span style="color: var(--text-secondary); font-size: 13px;">{{ post.created_at|date:"j M" }}</span>
+                    </div>
+                    <a href="/posts/thread/{{ post.id }}/" style="color: inherit; text-decoration: none;">
+                        <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap;">{{ post.content|link_hashtags|link_mentions }}</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if not users and not hashtags and not posts %}
+        <div class="card empty-state">
+            <div class="icon">🔍</div>
+            <h3>Sin resultados</h3>
+            <p style="color: var(--text-secondary);">No encontramos nada para "{{ query }}"</p>
+        </div>
+    {% endif %}
+
+{% endif %}
+{% endblock %}

@@ -9,7 +9,19 @@ from follows.models import Follow
 
 
 def feed(request):
-    base_posts = Post.objects.filter(parent=None).select_related("user").annotate(
+    tab = request.GET.get("tab", "global")
+
+    base_qs = Post.objects.filter(parent=None).select_related("user").prefetch_related("hashtags")
+
+    following_ids = set()
+    if request.user.is_authenticated:
+        following_ids = set(
+            Follow.objects.filter(follower=request.user).values_list("following_id", flat=True)
+        )
+        if tab == "following":
+            base_qs = base_qs.filter(user_id__in=following_ids)
+
+    base_posts = base_qs.annotate(
         likes_count=Count("like", distinct=True),
         retweets_count=Count("retweets", distinct=True),
         replies_count=Count("replies", distinct=True),
@@ -17,7 +29,6 @@ def feed(request):
 
     liked_post_ids = []
     retweeted_post_ids = set()
-    following_ids = set()
     if request.user.is_authenticated:
         liked_post_ids = list(
             Like.objects.filter(
@@ -30,9 +41,6 @@ def feed(request):
                 user=request.user,
                 post_id__in=[p.id for p in base_posts],
             ).values_list("post_id", flat=True)
-        )
-        following_ids = set(
-            Follow.objects.filter(follower=request.user).values_list("following_id", flat=True)
         )
 
     parent_id = request.GET.get("reply_to")
@@ -68,6 +76,7 @@ def feed(request):
         "following_ids": following_ids,
         "trending": trending,
         "reply_to": reply_to,
+        "tab": tab,
     })
 
 
@@ -77,7 +86,7 @@ def hashtag_view(request, tag_name):
         name=tag_name.lower()
     )
 
-    posts = hashtag.posts.select_related('user').annotate(
+    posts = hashtag.posts.select_related('user').prefetch_related('hashtags').annotate(
         likes_count=Count('like')
     ).order_by('-created_at')
 
@@ -189,14 +198,14 @@ def reply_view(request, post_id):
 
 def thread_view(request, post_id):
     post = get_object_or_404(
-        Post.objects.select_related("user").annotate(
+        Post.objects.select_related("user").prefetch_related("hashtags").annotate(
             likes_count=Count("like", distinct=True),
             retweets_count=Count("retweets", distinct=True),
             replies_count=Count("replies", distinct=True),
         ),
         id=post_id,
     )
-    replies = Post.objects.filter(parent=post).select_related("user").annotate(
+    replies = Post.objects.filter(parent=post).select_related("user").prefetch_related("hashtags").annotate(
         likes_count=Count("like", distinct=True),
         retweets_count=Count("retweets", distinct=True),
         replies_count=Count("replies", distinct=True),

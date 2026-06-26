@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load hashtag_extras %}
+{% load static %}
 {% block content %}
 
 <div class="card" style="padding: 16px;">
@@ -21,7 +22,7 @@
                 <span style="color: var(--text-secondary); font-size: 13px;">.</span>
                 <span style="color: var(--text-secondary); font-size: 13px;">{{ post.created_at|date:"j M Y" }}</span>
             </div>
-            <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap;">{{ post.content|link_hashtags }}</p>
+            <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap;">{{ post.content|link_hashtags|link_mentions }}</p>
             {% if post.image %}
                 <img src="{{ post.image }}" style="margin-top: 8px; border-radius: 12px; max-width: 100%; max-height: 300px; border: 1px solid var(--border);">
             {% endif %}
@@ -56,7 +57,7 @@
                         <span style="color: var(--text-secondary); font-size: 13px;">.</span>
                         <span style="color: var(--text-secondary); font-size: 13px;">{{ reply.created_at|date:"j M" }}</span>
                     </div>
-                    <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap;">{{ reply.content|link_hashtags }}</p>
+                    <p style="font-size: 15px; line-height: 1.5; white-space: pre-wrap;">{{ reply.content|link_hashtags|link_mentions }}</p>
                     {% if user.is_authenticated %}
                         <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
                             <form method="POST" action="/posts/like/{{ reply.id }}/" class="like-form" data-post-id="{{ reply.id }}" style="display: flex; align-items: center; gap: 2px;">
